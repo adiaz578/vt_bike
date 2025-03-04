@@ -1,49 +1,51 @@
 
 /* 
-    BIKE3-CCA with Level 1 security: 
+    BIKE3-CCA with Level 1 security (λ): 
     n = 24538
     r = 12269
     w = 134
     t = 154 
 */
 
-/*
-    Notations:
-    R: The cyclic polynomial ring F2[X]/hXr − 1i.
-    |v|: The Hamming weight of a binary polynomial v.
-    u$←U: Variable u is sampled uniformly at random from set U
-*/
+// 0. Given λ, set the parameters r, w as described above.
+r : Integer  // polynomial ring highest degree can be r-1
+r = 12269    
 
+w : Integer  // Weight
+w = 134      
 
-// Security Level
-lamda = 1  
+n : Integer 
+n = 24538   // size in bits of keys
+
+// Implement genPseudoRand -- get the aes functions from somewhere?
+genPseudoRand : ([32][8], Integer) -> [32][8]
+s = aes_ctr_init (seed, 0, (2^32)-1) 
+z = truncate_len (aes_ctr_prf(s, len)) //should return 32-bytes
+genPseudoRand (seed, len) = z
+
+// Implement genPseudoRandOddWeight 
+genPseudoRandOddWeight : ([32][8], Integer) -> [32][8]
+z = genPseudoRand (seed, len)
+if ((sum [ popCount b | b <- z ]) % 2 == 0)
+then z[0] = z[0] ^ 1
+genPseudoRandOddWeight (seed, len) = z
 
 // KeyGen
 // - Input: λ, the target quantum security level.
 // - Output: the private key (h0, h1, σ0, σ1) and the public key (f0, f1).
-keyGen : Integer -> Integer //the output is supposed to be two lists of polynomials
-
-// 0. Given λ, set the parameters r, w as described above.
-r = if lamda == 1 then 12269 else 0
-w = if lamda == 1 then 134 else 0
-
-// 1. Generate h0, h1
-// (h0, h1)$← R both of (odd) weight |h0| = |h1| = w/2.
-
-// 2. Generate σ0, σ1
-// $← R uniformly at random.
-// 3. Generate g
-// $← R of odd weight (so |g| ≈ r/2).
+keyGen : ([32][8]) -> (([n]Bit, [n]Bit, [n]Bit, [n]Bit), ([n]Bit, [n]Bit))
+// 1. Generate h0, h1$← R both of (odd) weight |h0| = |h1| = w/2.
+h0 = genPseudoRandOddWeight (seed, w/2)
+h1 = genPseudoRandOddWeight (seed, w/2)
+// 2. Generate σ0, σ1 $← R uniformly at random.
+σ0 = genPseudoRand (seed, w)
+σ1 = genPseudoRand (seed, w)
+// 3. Generate g $← R of odd weight (so |g| ≈ r/2).
+g = genPseudoRandOddWeight(seed, r/2)
 // 4. Compute (f0, f1) ← (h1 + gh0, g).
+f0 = h1 ^ (g & h0) // need to compensate for mod2 wrap 
+f0 = g
+keyGen(seed) = (h0, h1, σ0, σ1), (f0, f1)
 
 
 
-/*
-    GenPseudoRandOddWeight Implementation
-    Algorithm 7 GenPseudoRandOddWeight(seed, len)
-    Require: seed (32 bytes), len
-    Ensure: ¯z (len pseudorandom bits z of odd weight, in a byte array).
-    1: z = GenPseudoRand(seed, len)
-    2: if weight(z) is even then z[0] = z[0] ⊕1
-    3: return ¯z
-*/
