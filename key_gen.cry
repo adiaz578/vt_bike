@@ -1,11 +1,25 @@
 
 /* 
-    BIKE3-CCA with Level 1 security (λ): 
-    n = 24538
-    r = 12269
-    w = 134
-    t = 154 
+    BIKE2-CPA with Level 1 security (λ): 
+        n = 20326
+        r = 10163
+        w = 142
+        t = 134
+
+    BIKE2-CPA with Level 3 security (λ): 
+        n = 39706
+        r = 19853
+        w = 206
+        t = 199
+
+    BIKE2-CPA with Level 5 security (λ): 
+        n = 65498
+        r = 32749
+        w = 274
+        t = 264
 */
+
+import Cryptol::Pimitive::Symmetric::Cipher::Block::AES256 as AES256
 
 // 0. Given λ, set the parameters r, w as described above.
 r : Integer  // polynomial ring highest degree can be r-1
