@@ -19,7 +19,8 @@
         t = 264
 */
 
-import Cryptol::Pimitive::Symmetric::Cipher::Block::AES256 as AES256
+// import AES 256 in CTR mode
+import Primitive::Symmetric::Cipher::Block::Modes::CTR { Primitive::Symmetric::Cipher::Block::AES256 } as AES256_CTR
 
 // 0. Given λ, set the parameters r, w as described above.
 r : Integer  // polynomial ring highest degree can be r-1
