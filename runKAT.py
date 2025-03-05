@@ -86,11 +86,25 @@ for kat in os.listdir(KAT_DIR_NAME):
         # identify level
         parsed_kat = KAT_Group()
         if LEVEL_1 in kat:
-            kats.append(KAT_Group(1, 20326, 10163, 142, 134, []))
+            parsed_kat.level = 1
+            parsed_kat.n = 20326
+            parsed_kat.r = 10163
+            parsed_kat.w = 142
+            parsed_kat.t = 134
+
         elif LEVEL_3 in kat:
-            kats.append(KAT_Group(3, 39706, 19853, 206, 199, []))
+            parsed_kat.level = 3
+            parsed_kat.n = 39706
+            parsed_kat.r = 19853
+            parsed_kat.w = 206
+            parsed_kat.t = 199
+
         elif LEVEL_5 in kat:
-            kats.append(KAT_Group(5, 65498, 32749, 274, 264, []))
+            parsed_kat.level = 5
+            parsed_kat.n = 65498
+            parsed_kat.r = 32749
+            parsed_kat.w = 274
+            parsed_kat.t = 264
         
         parsed_kat.tests = parseRsp(os.path.join(os.path.join(KAT_DIR_NAME, kat)))
         kats.append(parsed_kat)
@@ -104,6 +118,7 @@ cryptol.sendline(":set ascii = on")
 cryptol.expect("Cryptol> ")
 
 for kat in kats:
-    print(kat)
+    for test in kat.tests:
+        print(test.ss)
 
 #cryptol.interact()
