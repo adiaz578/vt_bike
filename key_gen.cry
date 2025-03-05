@@ -24,13 +24,13 @@ import Primitive::Symmetric::Cipher::Block::Modes::CTR { Primitive::Symmetric::C
 
 // 0. Given λ, set the parameters r, w as described above.
 r : Integer  // polynomial ring highest degree can be r-1
-r = 12269    
+r = 10163    
 
 w : Integer  // Weight
-w = 134      
+w = 142      
 
 n : Integer 
-n = 24538   // size in bits of keys
+n = 134     // size in bits of keys
 
 // Implement genPseudoRand -- get the aes functions from somewhere?
 genPseudoRand : ([32][8], Integer) -> [32][8]
