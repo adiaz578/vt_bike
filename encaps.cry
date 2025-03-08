@@ -1,0 +1,50 @@
+// Size of h =    (public key h)
+// Size of K =    (encapsulated key K and the cryptogram c) 
+
+
+
+/**
+Encapsulation Function: 
+
+- Input: the dense public key h.
+- Output: the encapsulated key K and the cryptogram c.
+
+1. Sample (e0, e1) ∈ R2 such that |e0| + |e1| = t.
+Since r is a really large number we cannot generate R2, this would result in 
+2^(r*2). With r being 10163 this would result in a number too large. Especially, 
+since this is the number of polynomials we must generate. 
+
+Instead, lets generate a random binary string of r-bits to represent the
+polynomials we are randomly sampling from R2.   
+
+2. Compute c ← e0 + e1h.
+Perform polynomial addition/multiplication using the constraint X^r-1 (as mod)
+use cryptol provided poly arithemetic funcs 
+
+3. Compute K ← K(e0, e1).
+*/
+
+// Note r is 10163
+encaps : [32][8] ([32][8], [32][8]) -> ([10163]Bits, [32][8]) // input public key h and (e0, e1), output (K,c)
+// (e0, e1) <-- maybe pass this in as a pair that already has a certain hamming weight from R2
+c = e0 ^ (pmult e1 h) // maybe need to add the pmod function for cases that the terms are greater than X^r-1
+k = (e0, e1) // K is the tuple (e0, e1)
+encaps h (e0, e1) = (k, c)
+
+
+
+// ******* Outsource these to a C program or somthing *******
+// genRandR2Poly -- function to generate a random binary polynomial.
+// Generate a random r-bit vector -- use the seed in the generation as a starting point. 
+// We must generate a random r-bit vector for both e0 and e1. 
+// genRandR2Poly or use 
+// checkHammingWeight -- checks the number of 0s in the binary polynomial. 
+// Check the Hamming weight of each vector, if sum == t continue
+// 
+// Note: We can try and use these functions in conjunction with
+// with each other. For example, create a random binary polynomial
+// that is from the set R2. If its hamming weight does not fit the 
+// requirements then we generate a new set of polynomials. 
+// This should return a tuple or a pair of polynomials that 
+// match the criteria of the Hamming weight. 
+// ******* Outsource these to a C program or somthing *******
