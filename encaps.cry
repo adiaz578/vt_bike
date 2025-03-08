@@ -18,16 +18,17 @@ use cryptol provided poly arithemetic funcs
 
 3. Compute K ← K(e0, e1).
 */
+
 // Size of r = 10163
 // Size of h = 10163 bits -- size of r (public key h)
 // Size of K = ??? (encapsulated key K and the cryptogram c) 
 // Size of c = 10163 bits -- size of r (ciphertext)
 // Input: Public key h and (e0, e1), output: (K,c)
-encaps : [32][8] ([32][8], [32][8]) -> ([10163]Bits, [10163]Bits)
+encaps : [32][8] ([32][8], [32][8]) -> ([10163], [10163])
 // (e0, e1) <-- maybe pass this in as a pair that already has a certain hamming weight from R2
 encaps h (e0, e1) = (k, c)
     where
-        c = e0 ^ (pmult e1 h) // maybe need to add/implement the pmod function for cases that the terms are greater than X^r-1
+        c = e0 ^ (pmod (pmult e1 h) (x^r - 1)) // polynomial x^r - 1 -- need definition 
         k = (e0, e1) 
 
 
