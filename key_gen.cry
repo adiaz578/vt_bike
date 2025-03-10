@@ -20,7 +20,7 @@
 */
 
 // import AES 256 in CTR mode
-import Primitive::Symmetric::Cipher::Block::Modes::CTR { Primitive::Symmetric::Cipher::Block::AES256 } as AES256_CTR
+import Cryptol::Primitive::Symmetric::Cipher::Block::Instantiations::AES256_CTR as AES256_CTR
 
 // 0. Given λ, set the parameters r, w as described above.
 r : Integer  // polynomial ring highest degree can be r-1
@@ -36,7 +36,7 @@ n = 134     // size in bits of keys
 genPseudoRand : ([32][8], Integer) -> [32][8]
 s = aes_ctr_init (seed, 0, (2^32)-1) 
 z = truncate_len (aes_ctr_prf(s, len)) //should return 32-bytes
-genPseudoRand (seed, len) = z
+genPseudoRand (seed, len) = AES256_CTR::encrypt (seed, 0, [0x40, 0x41, 0x42]) //z
 
 // Implement genPseudoRandOddWeight 
 genPseudoRandOddWeight : ([32][8], Integer) -> [32][8]
