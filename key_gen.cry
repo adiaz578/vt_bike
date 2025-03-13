@@ -20,47 +20,46 @@
 */
 
 // import AES 256 in CTR mode
-import Cryptol::Primitive::Symmetric::Cipher::Block::Instantiations::AES256_CTR as AES256_CTR
+import Primitive::Symmetric::Cipher::Block::Instantiations::AES256_CTR as AES256_CTR
 
-// 0. Given λ, set the parameters r, w as described above.
-r : Integer  // polynomial ring highest degree can be r-1
-r = 10163    
-
-w : Integer  // Weight
-w = 142      
-
-n : Integer 
-n = 134     // size in bits of keys
+// Hamming weight helper function
+hammingWeight : [128] -> Integer
+hammingWeight (num) = result
+    where
+        result = if num > 0 then (if num % 2 == 0 then hammingWeight(num >> 1) else hammingWeight(num >> 1) + 1) else 0
 
 // Implement genPseudoRand -- get the aes functions from somewhere?
-genPseudoRand : ([32][8], Integer) -> [32][8]
-s = aes_ctr_init (seed, 0, (2^32)-1) 
-z = truncate_len (aes_ctr_prf(s, len)) //should return 32-bytes
-genPseudoRand (seed, len) = AES256_CTR::encrypt (seed, 0, [0x40, 0x41, 0x42]) //z
+genPseudoRand : ([256], [128]) -> [128]
+genPseudoRand (seed, ctr) = result
+    where
+        result_list = AES256_CTR::encrypt seed ctr [0x00000000000000000000000000000000]
+        result = result_list@0
 
 // Implement genPseudoRandOddWeight 
-genPseudoRandOddWeight : ([32][8], Integer) -> [32][8]
-z = genPseudoRand (seed, len)
-if ((sum [ popCount b | b <- z ]) % 2 == 0)
-then z[0] = z[0] ^ 1
-genPseudoRandOddWeight (seed, len) = z
+genPseudoRandOddWeight : ([256], [128]) -> [128]
+genPseudoRandOddWeight (seed, ctr) = z
+    where
+        rand = genPseudoRand (seed, ctr)
+        z = rand ^ if hammingWeight(rand) % 2 == 0 then 1 else 0
 
 // KeyGen
 // - Input: λ, the target quantum security level.
 // - Output: the private key (h0, h1, σ0, σ1) and the public key (f0, f1).
-keyGen : ([32][8]) -> (([n]Bit, [n]Bit, [n]Bit, [n]Bit), ([n]Bit, [n]Bit))
-// 1. Generate h0, h1$← R both of (odd) weight |h0| = |h1| = w/2.
-h0 = genPseudoRandOddWeight (seed, w/2)
-h1 = genPseudoRandOddWeight (seed, w/2)
-// 2. Generate σ0, σ1 $← R uniformly at random.
-σ0 = genPseudoRand (seed, w)
-σ1 = genPseudoRand (seed, w)
-// 3. Generate g $← R of odd weight (so |g| ≈ r/2).
-g = genPseudoRandOddWeight(seed, r/2)
-// 4. Compute (f0, f1) ← (h1 + gh0, g).
-f0 = h1 ^ (g & h0) // need to compensate for mod2 wrap 
-f0 = g
-keyGen(seed) = (h0, h1, σ0, σ1), (f0, f1)
+keyGen : ([256]) -> (([128], [128], [128], [128]), ([128], [128]))
+keyGen(seed) = ((h0, h1, σ0, σ1), (f0, f1))
+    where
+        // 1. Generate h0, h1$← R both of (odd) weight |h0| = |h1| = w/2.
+        h0 = genPseudoRandOddWeight (seed, 0)
+        h1 = genPseudoRandOddWeight (seed, 1)
 
+        // 2. Generate σ0, σ1 $← R uniformly at random.
+        σ0 = genPseudoRand (seed, 2)
+        σ1 = genPseudoRand (seed, 3)
 
+        // 3. Generate g $← R of odd weight (so |g| ≈ r/2).
+        g = genPseudoRandOddWeight(seed, 4)
+
+        // 4. Compute (f0, f1) ← (h1 + gh0, g).
+        f0 = h1 ^ (g && h0) // need to compensate for mod2 wrap 
+        f1 = g
 

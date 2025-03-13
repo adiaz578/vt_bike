@@ -140,6 +140,24 @@ int main()
         }
 
         randombytes_init(seed, NULL, 256);
+        unsigned char rand[CRYPTO_BYTES];
+        randombytes(rand, CRYPTO_BYTES);
+
+        char cryptol_cmd[5000] = "cryptol -c ':l ../key_gen.cry' -c 'keyGen 0x";
+        for (size_t i = 0; i < CRYPTO_BYTES; i++)
+        {
+            char buf[2];
+            sprintf(buf, "%02X", rand[i]);
+            strcat(cryptol_cmd, buf);
+        }
+        strcat(cryptol_cmd, "'");
+
+        // note it is normally bad practice to use system
+        printf("%s\n", cryptol_cmd);
+        system(cryptol_cmd);
+
+        // todo remove
+        done = 1;
 
     } while (!done);
 
