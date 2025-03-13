@@ -1,50 +1,86 @@
 /**
-Encapsulation Function: 
+    Encrpt Function:  <insert more specifics from c code>
 
-- Input: the dense public key h.
-- Output: the encapsulated key K and the cryptogram c.
+    - Input: ...
+    - Output: ...   
 
-1. Sample (e0, e1) ∈ R2 such that |e0| + |e1| = t.
-Since r is a really large number we cannot generate R2, this would result in 
-2^(r*2). With r being 10163 this would result in a number too large. Especially, 
-since this is the number of polynomials we must generate. 
+    1. Initialize size variables for the encrypt function.
+    These include  e0, e1, c0, and c1. 
+    They are represented by an array of bytes, with number of elements: 
+    ((r_bits/8-bits) + (r_bits % 8-bits == 0 ? 0 : 1)) 
 
-Instead, lets generate a random binary string of r-bits to represent the
-polynomials we are randomly sampling from R2.   
+    2. Compute c ← e0 + e1h.
+    Perform polynomial addition/multiplication using the constraint X^r-1 (as mod)
+    use cryptol provided poly arithemetic funcs 
 
-2. Compute c ← e0 + e1h.
-Perform polynomial addition/multiplication using the constraint X^r-1 (as mod)
-use cryptol provided poly arithemetic funcs 
-
-3. Compute K ← K(e0, e1).
+    3. Compute K ← K(e0, e1).
+    This is the ciphertext.
 */
 
-// Size of r = 10163
-// Size of h = 10163 bits -- size of r (public key h)
-// Size of K = ??? (encapsulated key K and the cryptogram c) 
-// Size of c = 10163 bits -- size of r (ciphertext)
-// Input: Public key h and (e0, e1), output: (K,c)
-encaps : [32][8] ([32][8], [32][8]) -> ([10163], [10163])
-// (e0, e1) <-- maybe pass this in as a pair that already has a certain hamming weight from R2
-encaps h (e0, e1) = (k, c)
+// Initialize and define size constants
+bit_size = 1271
+r_bits = 10163
+
+// Define Byte and Poly for later use 
+type Byte = [8]  // 8-bit type
+type Poly = [bit_size]Byte  // 8-bit array of 1271 terms
+
+// Encryption function
+encrypt : ([bit_size]Byte, [bit_size]Byte) -> ([bit_size]Bit, [bit_size]Bit)
+encrypt (e, pk1) = (c0, c1)
     where
-        c = e0 ^ (pmod (pmult e1 h) (x^r - 1)) // polynomial x^r - 1 -- need definition 
-        k = (e0, e1) 
+        // Initialize all polynomials to zero
+        e0 : Poly = 0
+        e1 : Poly = 0
+        c0 : Poly = 0
+        c1 : Poly = 0
+
+        // Split the polynomial into two parts e0 and e1
+        // Puts the least significant r_bits in e0 and the MSB in e1 
+        //(e0, e1) = split_poly e
+
+        // Compute ciphertext
+        // ct = (e1*pk1 + e0)
+        c1 = pmod (pmult e1 pk1) //c1 = e1*pk1
+
+        c0 = c1 ^ e0 // c0 = c1 + e0
+        c1 = 0  // Set c1 to 0
+
+        // this may bot be needed **
+        // // Convert output to bit representation (assuming 8-bit values)
+        // c0_bits = join (map toBits c0)  // Flatten into BIT_SIZE bits
+        // c1_bits = join (map toBits c1)
+        // (c0_bits, c1_bits)
+
+// Take in polynomial e and split it into two halves. 
+// Let the first half be placed in e0 and the second half in e1.
+// split_poly : Poly -> (Poly, Poly)
+// split_poly e =
+//     (take e, drop e)  
 
 
+/**
+    Encapsulation Function: 
 
-// ******* Outsource these to a C program or somthing *******
-// genRandR2Poly -- function to generate a random binary polynomial.
-// Generate a random r-bit vector -- use the seed in the generation as a starting point. 
-// We must generate a random r-bit vector for both e0 and e1. 
-// genRandR2Poly or use 
-// checkHammingWeight -- checks the number of 0s in the binary polynomial. 
-// Check the Hamming weight of each vector, if sum == t continue
-// 
-// Note: We can try and use these functions in conjunction with
-// with each other. For example, create a random binary polynomial
-// that is from the set R2. If its hamming weight does not fit the 
-// requirements then we generate a new set of polynomials. 
-// This should return a tuple or a pair of polynomials that 
-// match the criteria of the Hamming weight. 
-// ******* Outsource these to a C program or somthing *******
+    - Input: the dense public key h.
+    - Output: the encapsulated key K and the cryptogram c.
+
+    1. Sample (e0, e1) ∈ R2 such that |e0| + |e1| = t.
+    Since r is a really large number we cannot generate R2, this would result in 
+    2^(r*2). With r being 10163 this would result in a number too large. Especially, 
+    since this is the number of polynomials we must generate. 
+
+    Instead, lets generate a random binary string of r-bits to represent the
+    polynomials we are randomly sampling from R2.   
+
+    2. Compute c ← e0 + e1h.
+    Leave this to the encrypt function.
+
+    3. Compute K ← K(e0, e1).
+    The output of the encrypt function will be K or the ciphertext.
+*/
+// crypto_kem_enc : [32][8] ([32][8], [32][8]) -> ([10163], [10163])
+// crypto_kem_enc h (e0, e1) = (k, c)
+//     where
+//     // call encrypt here to get k the result 
+//         k = (e0, e1) 
