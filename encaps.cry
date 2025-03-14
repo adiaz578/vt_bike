@@ -1,12 +1,13 @@
 /**
-    Encrpt Function:  <insert more specifics from c code>
+    Encrpt Function: 
 
     - Input: ...
     - Output: ...   
 
     1. Initialize size variables for the encrypt function.
     These include  e0, e1, c0, and c1. 
-    They are represented by an array of bytes, with number of elements: 
+    Each of these are represented by an array of bytes, 
+    with number of elements in each array is: 
     ((r_bits/8-bits) + (r_bits % 8-bits == 0 ? 0 : 1)) 
 
     2. Compute c ← e0 + e1h.
@@ -19,7 +20,7 @@
 
 // Initialize and define size constants
 bit_size = 1271
-r_bits = 10163
+r_bits   = 10163
 
 // Define Byte and Poly for later use 
 type Byte = [8]  // 8-bit type
@@ -30,34 +31,27 @@ encrypt : ([bit_size]Byte, [bit_size]Byte) -> ([bit_size]Bit, [bit_size]Bit)
 encrypt (e, pk1) = (c0, c1)
     where
         // Initialize all polynomials to zero
-        e0 : Poly = 0
-        e1 : Poly = 0
-        c0 : Poly = 0
-        c1 : Poly = 0
+        Poly e0 = 0
+        Poly e1 = 0
+        Poly c0 = 0
+        Poly c1 = 0
 
         // Split the polynomial into two parts e0 and e1
         // Puts the least significant r_bits in e0 and the MSB in e1 
-        //(e0, e1) = split_poly e
+        // do we need to convert e to a binary poly?
+        e0 = e << 5084 // << (Byte * bit_size) / 2
+        e1 = e >> 5084
 
         // Compute ciphertext
         // ct = (e1*pk1 + e0)
-        c1 = pmod (pmult e1 pk1) //c1 = e1*pk1
+        c1 = pmult e1 pk1   //c1 = e1*pk1
+        c1 = pmod [c1] [1, 0, 0, 1] // (100..r-bits num 0..1) convert to bits before passing c1 them in pmod?
 
-        c0 = c1 ^ e0 // c0 = c1 + e0
-        c1 = 0  // Set c1 to 0
+        c0 = c1 ^ e0  // c0 = c1 + e0
+        c1 = 0        // Set c1 to 0
 
-        // this may bot be needed **
-        // // Convert output to bit representation (assuming 8-bit values)
-        // c0_bits = join (map toBits c0)  // Flatten into BIT_SIZE bits
-        // c1_bits = join (map toBits c1)
-        // (c0_bits, c1_bits)
-
-// Take in polynomial e and split it into two halves. 
-// Let the first half be placed in e0 and the second half in e1.
-// split_poly : Poly -> (Poly, Poly)
-// split_poly e =
-//     (take e, drop e)  
-
+        // In the c code this is converted to bits
+        c0, c1 = (c0, c1)
 
 /**
     Encapsulation Function: 
