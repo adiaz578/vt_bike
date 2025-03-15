@@ -1,80 +1,67 @@
-/**
-    Encrpt Function: 
+// /**
+//     Encapsulation Function: 
 
-    - Input: ...
-    - Output: ...   
+//     - Input: the dense public key h.
+//     - Output: the encapsulated key K and the cryptogram c.
 
-    1. Initialize size variables for the encrypt function.
-    These include  e0, e1, c0, and c1. 
-    Each of these are represented by an array of bytes, 
-    with number of elements in each array is: 
-    ((r_bits/8-bits) + (r_bits % 8-bits == 0 ? 0 : 1)) 
+//     1. Sample (e0, e1) ∈ R2 such that |e0| + |e1| = t.
+//     Since r is a really large number we cannot generate R2, this would result in 
+//     2^(r*2). With r being 10163 this would result in a number too large. Especially, 
+//     since this is the number of polynomials we must generate. 
 
-    2. Compute c ← e0 + e1h.
-    Perform polynomial addition/multiplication using the constraint X^r-1 (as mod)
-    use cryptol provided poly arithemetic funcs 
+//     Instead, lets generate a random binary string of r-bits to represent the
+//     polynomials we are randomly sampling from R2.   
 
-    3. Compute K ← K(e0, e1).
-    This is the ciphertext.
-*/
+//     2. Compute c ← e0 + e1h.
+//     Leave this to the encrypt function.
 
-// Initialize and define size constants
-bit_size = 1271
-r_bits   = 10163
-
-// Define Byte and Poly for later use 
-type Byte = [8]  // 8-bit type
-type Poly = [bit_size]Byte  // 8-bit array of 1271 terms
-
-// Encryption function
-encrypt : ([bit_size]Byte, [bit_size]Byte) -> ([bit_size]Bit, [bit_size]Bit)
-encrypt (e, pk1) = (c0, c1)
-    where
-        // Initialize all polynomials to zero
-        Poly e0 = 0
-        Poly e1 = 0
-        Poly c0 = 0
-        Poly c1 = 0
-
-        // Split the polynomial into two parts e0 and e1
-        // Puts the least significant r_bits in e0 and the MSB in e1 
-        // do we need to convert e to a binary poly?
-        e0 = e << 5084 // << (Byte * bit_size) / 2
-        e1 = e >> 5084
-
-        // Compute ciphertext
-        // ct = (e1*pk1 + e0)
-        c1 = pmult e1 pk1   //c1 = e1*pk1
-        c1 = pmod [c1] [1, 0, 0, 1] // (100..r-bits num 0..1) convert to bits before passing c1 them in pmod?
-
-        c0 = c1 ^ e0  // c0 = c1 + e0
-        c1 = 0        // Set c1 to 0
-
-        // In the c code this is converted to bits
-        c0, c1 = (c0, c1)
-
-/**
-    Encapsulation Function: 
-
-    - Input: the dense public key h.
-    - Output: the encapsulated key K and the cryptogram c.
-
-    1. Sample (e0, e1) ∈ R2 such that |e0| + |e1| = t.
-    Since r is a really large number we cannot generate R2, this would result in 
-    2^(r*2). With r being 10163 this would result in a number too large. Especially, 
-    since this is the number of polynomials we must generate. 
-
-    Instead, lets generate a random binary string of r-bits to represent the
-    polynomials we are randomly sampling from R2.   
-
-    2. Compute c ← e0 + e1h.
-    Leave this to the encrypt function.
-
-    3. Compute K ← K(e0, e1).
-    The output of the encrypt function will be K or the ciphertext.
-*/
+//     3. Compute K ← K(e0, e1).
+//     The output of the encrypt function will be K or the ciphertext.
+// */
 // crypto_kem_enc : [32][8] ([32][8], [32][8]) -> ([10163], [10163])
 // crypto_kem_enc h (e0, e1) = (k, c)
 //     where
 //     // call encrypt here to get k the result 
 //         k = (e0, e1) 
+
+
+// /**
+//     Encrpt Function: 
+
+//     - Input: ...
+//     - Output: ...   
+
+//     1. Initialize size variables for the encrypt function.
+//     These include  e0, e1, c0, and c1. 
+//     Each of these are represented by an array of bytes, 
+//     with number of elements in each array is: 
+//     ((r_bits/8-bits) + (r_bits % 8-bits == 0 ? 0 : 1)) 
+
+//     2. Compute c ← e0 + e1h.
+//     Perform polynomial addition/multiplication using the constraint X^r-1 (as mod)
+//     use cryptol provided poly arithemetic funcs 
+
+//     3. Compute K ← K(e0, e1).
+//     This is the ciphertext.
+// */
+
+// Size constants
+// bit_size = 1271
+// r_bits   = 10163
+
+// Encryption function
+encrypt : ([10168], [10168]) -> ([10168], [10168])
+encrypt (e, pk1) = (c0, c1)
+    where
+        // Split the polynomial into two parts e0 and e1
+        // Puts the least significant r_bits in e0 and the MSB in e1 
+        e0 = e && ((1 << 5084) - 1) // 10168 / 2 -> 5084
+        e1 = e >> 5084
+
+        // // Compute ciphertext --> ct = (e1*pk1 + e0)
+        c1_tmp1 = pmult e1 pk1   // c1_tmp1 = e1*pk1
+        c1_tmp2 = pmod [c1_tmp1] [1, 0, 0, 1] // (100..r-bits num 0..1)
+
+        // Define c0 and c1
+        c0 = c1_tmp2 ^ e0 // c0 = c1 + e0
+        c1 = 0
