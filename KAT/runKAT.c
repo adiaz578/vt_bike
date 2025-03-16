@@ -110,10 +110,9 @@ void get_seeds(OUT double_seed_t *seeds)
     randombytes(seeds->s1.raw, sizeof(double_seed_t));
 }
 
-void generateH(char *h0_out, char *h0_inv_out, char *h1_out)
+void generateH(char *h0_out, char *h1_out)
 {
     uint8_t h0[R_SIZE];
-    uint8_t h0_inv[R_SIZE];
     uint8_t h1[R_SIZE];
 
     // generate seed
@@ -124,22 +123,22 @@ void generateH(char *h0_out, char *h0_inv_out, char *h1_out)
     init_aes_ctr_prf_state(&h_prf_state, MAX_AES_INVOKATION, &seeds.s1);
     generate_sparse_rep(h0, DV, R_BITS, &h_prf_state);
     generate_sparse_rep(h1, DV, R_BITS, &h_prf_state);
-    ntl_mod_inv(h0_inv, h0);
 
+    size_t out_index = 0;
     for (size_t i = 0; i < R_SIZE; i++)
     {
-        char buf[3];
-        sprintf(buf, "%02X", h0[i]);
-        h0_out[2*i] = buf[0];
-        h0_out[2*i+1] = buf[1];
+        char h0_buf[3];
+        char h1_buf[3];
+        sprintf(h0_buf, "%02X", h0[i]);
+        sprintf(h1_buf, "%02X", h1[i]);
 
-        sprintf(buf, "%02X", h0_inv[i]);
-        h0_inv_out[2*i] = buf[0];
-        h0_inv_out[2*i+1] = buf[1];
+        h0_out[out_index] = h0_buf[0];
+        h1_out[out_index] = h1_buf[0];
+        out_index++;
 
-        sprintf(buf, "%02X", h1[i]);
-        h1_out[2*i] = buf[0];
-        h1_out[2*i+1] = buf[1];
+        h0_out[out_index] = h0_buf[1];
+        h1_out[out_index] = h1_buf[1];
+        out_index++;
     }
 }
 
@@ -159,8 +158,8 @@ void generateE(char *e_out)
     {
         char buf[3];
         sprintf(buf, "%02X", e[i]);
-        e_out[2*i] = buf[0];
-        e_out[2*i+1] = buf[1];
+        e_out[2 * i] = buf[0];
+        e_out[2 * i + 1] = buf[1];
     }
 }
 
@@ -205,21 +204,23 @@ int main()
         }
         randombytes_init(seed, NULL, 256);
 
+        char h0[R_SIZE * 2 + 1];
+        char h1[R_SIZE * 2 + 1];
+        generateH(h0, h1);
 
-
-        char h0[R_SIZE*2+1];
-        char h0_inv[R_SIZE*2+1];
-        char h1[R_SIZE*2+1];
-        generateH(h0, h0_inv, h1);
-
-        char cryptol_keygen[100000] = "cryptol -c ':l ../key_gen.cry' -c 'keyGen 0x";
+        char cryptol_keygen[100000] = "cryptol -c ':l ../key_gen.cry' -c 'keyGen (0x";
         strcat(cryptol_keygen, h0);
-        strcat(cryptol_keygen, " 0x");
-        strcat(cryptol_keygen, h0_inv);        
-        strcat(cryptol_keygen, " 0x");
+        strcat(cryptol_keygen, ", 0x");
         strcat(cryptol_keygen, h1);
-        strcat(cryptol_keygen, "'");
-        //system(cryptol_keygen);
+        strcat(cryptol_keygen, ")'");
+
+        /* FILE *cryptol_keygen_out;
+        cryptol_keygen_out = popen(cryptol_keygen, "r");
+        if (cryptol_keygen_out == NULL) {
+            printf("ERROR: unable to call 'cryptol' from <%s>\n", KAT_FILE);
+            fclose(fp_rsp);
+            return -1;
+        } */
 
         // Encryption
         if (!ReadHex(fp_rsp, pk, PUBLICKEY_BYTES, (char *)"pk = 0100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"))
@@ -229,30 +230,51 @@ int main()
             return -1;
         }
 
-        //reset cryptol cmd
         char cryptol_enc[100000] = "cryptol -c ':l ../encaps.cry' -c 'encrypt (0x";
-
-        char e[N_SIZE*2+1];
+        char e[N_SIZE * 2 + 1];
         generateE(e);
 
-        char pk_str[2*PUBLICKEY_BYTES+1];
-        for (size_t i=0; i<PUBLICKEY_BYTES; i++)
+        char pk_str[2 * PUBLICKEY_BYTES + 1];
+        for (size_t i = 0; i < PUBLICKEY_BYTES; i++)
         {
             char buf[3];
             sprintf(buf, "%02X", pk[i]);
-            pk_str[2*i] = buf[0];
-            pk_str[2*i+1] = buf[1];
+            pk_str[2 * i] = buf[0];
+            pk_str[2 * i + 1] = buf[1];
         }
 
         strcat(cryptol_enc, e);
         strcat(cryptol_enc, ", 0x");
         strcat(cryptol_enc, pk_str);
         strcat(cryptol_enc, ")'");
-
         system(cryptol_enc);
 
-        // todo remove
-        done = 1;
+        // decryption
+        if (!ReadHex(fp_rsp, ct, CIPHERTEXT_BYTES, (char *)"ct = "))
+        {
+            printf("ERROR: unable to read 'ct' from <%s>\n", KAT_FILE);
+            fclose(fp_rsp);
+            return -1;
+        }
+
+        char cryptol_dec[100000] = "cryptol -c ':l ../decaps.cry' -c 'decrypt (0x";
+
+        char ct_str[2 * CIPHERTEXT_BYTES + 1];
+        for (size_t i = 0; i < CIPHERTEXT_BYTES; i++)
+        {
+            char buf[3];
+            sprintf(buf, "%02X", ct[i]);
+            ct_str[2 * i] = buf[0];
+            ct_str[2 * i + 1] = buf[1];
+        }
+
+        strcat(cryptol_dec, h0);
+        strcat(cryptol_dec, ", 0x");
+        strcat(cryptol_dec, h1);
+        strcat(cryptol_dec, ", 0x");
+        strcat(cryptol_dec, ct_str);
+        strcat(cryptol_dec, ")'");
+        system(cryptol_dec);        
 
     } while (!done);
 

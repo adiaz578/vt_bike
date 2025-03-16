@@ -1,9 +1,8 @@
 module GF2_10163 where
 
-type GF = [10163]
+type GF = [10168]
 
-irreducible = <| x^^10163 + 1|>
-
+irreducible = <| x^^10163 + 1 |>
 
 /**
  * Multiply two elements in GF(2^10163).

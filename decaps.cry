@@ -11,13 +11,12 @@
 
 import GF2_10163
 
-// decryption function
-decrypt : ([10168], [10168], [10168]) -> GF
-deccrypt (h0, h1, c) = s
+// decryption function returns the syndrome
+decrypt : (GF, GF, [20336]) -> GF
+decrypt (h0, h1, c_full) = s
     where
-        //trim inputs since they gets sent as hex bytes (not the specific number of bits)
-        h0_trimmed = drop h0 : GF
-        h1_trimmed = drop h1 : GF
-        c_trimmed = drop c : GF
+        // trim the ciphertext since we are using BIKE2
+        c = take c_full : GF
 
+        // 1. Compute the syndrome s ← ch0
         s = mult c h0
