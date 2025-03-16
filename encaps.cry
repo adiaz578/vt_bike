@@ -50,10 +50,7 @@
 // r_bits   = 10163
 
 import GF2_10163
-import Primitive::Keyless::Hash::SHA3::SHA3 as SHA384
-type digest = 384
 
-    
 // Encryption function
 encrypt : ([20328], [10168]) -> GF
 encrypt (e, pk) = c

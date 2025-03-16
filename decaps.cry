@@ -1,0 +1,23 @@
+//
+//     Encapsulation Function: 
+//
+//     - Input: the sparse private key (h0, h1) and the cryptogram c.
+//     - Output: the decapsulated key K.
+
+
+// Size constants
+// bit_size = 1271
+// r_bits   = 10163
+
+import GF2_10163
+
+// decryption function
+decrypt : ([10168], [10168], [10168]) -> GF
+deccrypt (h0, h1, c) = s
+    where
+        //trim inputs since they gets sent as hex bytes (not the specific number of bits)
+        h0_trimmed = drop h0 : GF
+        h1_trimmed = drop h1 : GF
+        c_trimmed = drop c : GF
+
+        s = mult c h0
