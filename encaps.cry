@@ -49,19 +49,23 @@
 // bit_size = 1271
 // r_bits   = 10163
 
+import GF2_10163
+import Primitive::Keyless::Hash::SHA3::SHA3 as SHA384
+type digest = 384
+
+    
 // Encryption function
-encrypt : ([10168], [10168]) -> ([10168], [10168])
-encrypt (e, pk1) = (c0, c1)
+encrypt : ([20328], [10168]) -> GF
+encrypt (e, pk) = c
     where
+        //trim e since it gets sent as hex bytes
+        e_trimmed = drop e : [20327]
+        pk_trimmed = drop pk : GF
+
         // Split the polynomial into two parts e0 and e1
         // Puts the least significant r_bits in e0 and the MSB in e1 
-        e0 = e && ((1 << 5084) - 1) // 10168 / 2 -> 5084
-        e1 = e >> 5084
+        e0 = drop e_trimmed : GF 
+        e1 = take e_trimmed : GF
 
-        // // Compute ciphertext --> ct = (e1*pk1 + e0)
-        c1_tmp1 = pmult e1 pk1   // c1_tmp1 = e1*pk1
-        c1_tmp2 = pmod [c1_tmp1] [1, 0, 0, 1] // (100..r-bits num 0..1)
-
-        // Define c0 and c1
-        c0 = c1_tmp2 ^ e0 // c0 = c1 + e0
-        c1 = 0
+        // // Compute ciphertext --> ct = (e1*pk + e0)
+        c = add e0 (mult e1 pk_trimmed)

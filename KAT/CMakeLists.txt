@@ -1,0 +1,10 @@
+cmake_minimum_required(VERSION 3.10.0)
+project(vt_bike VERSION 0.1.0 LANGUAGES C CXX)
+find_package(OpenSSL REQUIRED)
+find_library(NTL_LIB ntl)
+if(NOT NTL_LIB)
+  message(FATAL_ERROR "ntl library not found.  Rerun cmake with -DCMAKE_PREFIX_PATH=\"<path to lib1>;<path to lib2>\"")
+endif()
+
+add_executable(vt_bike runKAT.c rng.c sampling.c aes_ctr_prf.c utilities.c ntl.cpp ntl.h)
+target_link_libraries(vt_bike OpenSSL::SSL ${NTL_LIB})
