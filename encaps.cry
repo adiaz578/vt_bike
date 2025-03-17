@@ -1,53 +1,46 @@
-// /**
-//     Encapsulation Function: 
+// Important Note
+//----------------------------------
+// Security Level = 1
+// Therefore:
+// r_bits = 10163
+// w      = 142
+// t      = 134
+//----------------------------------
 
-//     - Input: the dense public key h.
-//     - Output: the encapsulated key K and the cryptogram c.
+// Encrypt Function: 
+// - Input: (e, pk) which are the randomly generated value and the public key respectively.
+// - Output: K or (e0, e1) which is the ciphertext.   
 
-//     1. Sample (e0, e1) ∈ R2 such that |e0| + |e1| = t.
-//     Since r is a really large number we cannot generate R2, this would result in 
-//     2^(r*2). With r being 10163 this would result in a number too large. Especially, 
-//     since this is the number of polynomials we must generate. 
+// Each i/o variable in this function (e0, e1, c0, and c1) is represented have r number of bits (r-bits).
+// The number r-bits depends on the security level of the encryption scheme. 
+// In this case we are using security level 1 so r_bits = 10163 
 
-//     Instead, lets generate a random binary string of r-bits to represent the
-//     polynomials we are randomly sampling from R2.   
+// 1. Compute (e0, e1).
+// Split the random polynomial provided (e) in half with the LSBs 
+// represented by e0, while the MSBs will be our e1.
 
-//     2. Compute c ← e0 + e1h.
-//     Leave this to the encrypt function.
+// 2. Compute c0 ← e0 + e1h.
+// Perform polynomial arithemetic (addition/multiplication) using the
+// constraint X^r-1 (as mod) when performing multiplication.
 
-//     3. Compute K ← K(e0, e1).
-//     The output of the encrypt function will be K or the ciphertext.
-// */
-// crypto_kem_enc : [32][8] ([32][8], [32][8]) -> ([10163], [10163])
-// crypto_kem_enc h (e0, e1) = (k, c)
-//     where
-//     // call encrypt here to get k the result 
-//         k = (e0, e1) 
+// 3. Compute k ← k(e0, e1).
+// Split the polynomial provided (e) in half with the LSBs represented by e0,
+// while the MSBs will be our e1.
 
+// Encapsulation Function: 
+// - Input: the dense public key (pk). 
+// - Output: the encapsulated key (ss) and cryptogram or (ct).
 
-// /**
-//     Encrpt Function: 
+// 1. Generate a random big number r of length len with a set weight w. 
+// We provide it with the e_prf_state, weight, and length.
+// A note on how we approached this: 
+// The directions say to do the following: Sample (e0, e1) ∈ R2 such that |e0| + |e1| = t.
+// Since r is a really large number (10163) we cannot directly generate R2 to sample from. 
+// This would result in 2^(r*2) number of possible polynomials.  
+// Instead, we can generate a random binary number of r-bits to represent the
+// polynomials we are randomly sampling from R2 that has desired Hamming weight of t (134).   
 
-//     - Input: ...
-//     - Output: ...   
-
-//     1. Initialize size variables for the encrypt function.
-//     These include  e0, e1, c0, and c1. 
-//     Each of these are represented by an array of bytes, 
-//     with number of elements in each array is: 
-//     ((r_bits/8-bits) + (r_bits % 8-bits == 0 ? 0 : 1)) 
-
-//     2. Compute c ← e0 + e1h.
-//     Perform polynomial addition/multiplication using the constraint X^r-1 (as mod)
-//     use cryptol provided poly arithemetic funcs 
-
-//     3. Compute K ← K(e0, e1).
-//     This is the ciphertext.
-// */
-
-// Size constants
-// bit_size = 1271
-// r_bits   = 10163
+// 2. Call encrypt function to generate ciphertext 
 
 import GF2_10163
 
